@@ -16,13 +16,14 @@
         <label>{{ lang.input_password }} <br>
         <input type="password" name="pw" value="" class="u-full-width" ></label>
         <input type="submit" value="{{ lang.input_submit }}" class="u-full-width">
-
+	<center><a href="/?a=r">{{ lang.input_resetpass }}</a></center>
     </form>
 {% endblock %}
 
 {% block content %}
     {{ lang.welcome_text|raw }}
     <p>{{ lang.input_nouser }}<a href="/?a=u">{{ lang.input_create }}</a></p>
+    <p>{{ lang.input_lostpass }}<a href="/?a=r">{{ lang.input_resetpass }}</a></p>
 {% endblock %}
 
 

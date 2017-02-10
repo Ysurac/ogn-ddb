@@ -44,6 +44,9 @@ $languages['english'] = array (
     "email_subject" => "[OGN] Account Validation",
     "email_content" => "Hello,<BR>Thank you for contributing to OGN.<BR>To confirm this email address you have to click on the link below:<BR>",
     "email_sent" => "An email has just been sent to you, you'll find instructions on how to validate your account.",
+    "email_lost_pass_subject" => "[OGN] Lost Password Request",
+    "email_lost_pass_content" => "Hello,<BR>You requested to change your OGN password.<BR>To confirm this change you have to click on the link below:<BR>",
+    "email_lost_pass_sent" => "An email has just been sent to you, you'll find instructions on how to valide password change.",
     "email_not_sent" => "Error sending email, check your address is correct.",
     "email_validated" => "Your account is validated, now you can login.",
     "table_devid" => "Device ID",
@@ -91,5 +94,10 @@ $languages['english'] = array (
         </ul>
         The data is freely available under the <a href='http://opendatacommons.org/licenses/by/summary/'>ODC-BY</a> license.
         </p>",
-
+    "input_lostpass" => "If you have lost your password, ",
+    "input_resetpass" => "Reset your password",
+    "error_userdoesntexists" => "This user doesn't exists",
+    "email_lost_pass_subject" => "[OGN] Lost Password Request",
+    "email_lost_pass_content" => "Hello,<BR>You requested to change your OGN password.<BR>To confirm this change you have to click on the link below:<BR>",
+    "email_lost_pass_sent" => "An email has just been sent to you, you'll find instructions on how to valide password change.",
 );

@@ -91,6 +91,12 @@ $languages['french'] = array (
         </ul>
         Les données sont disponibles gratuitement sous licence <a href='http://opendatacommons.org/licenses/by/summary/'>ODC-BY</a>.
         </p>",
+    "error_userdoesntexists" => "Utilisateur inconnu",
+    "input_lostpass" => "Si vous avez perdu votre mot de passe, ",
+    "input_resetpass" => "Réinitialisez son mot de passe",
+    "email_lost_pass_subject" => "[OGN] Demande de réinitilisation du mot de passe",
+    "email_lost_pass_content" => "Bonjour,<BR>Vous avez demandé à changer votre mot de passe pour OGN.<BR>Pour confirmer ce changement, cliquez sur le lien ci-dessous :<BR>",
+    "email_lost_pass_sent" => "An email has just been sent to you, you'll find instructions on how to valide password change.",
 
 );
 

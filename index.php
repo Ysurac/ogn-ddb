@@ -78,6 +78,24 @@ function fillinuser()
     echo $twig->render('fillinuser.html.twig', $template_vars);
 }
 
+function resetpass()
+{
+    global $lang,$error,$user,$twig;
+
+    $v1 = rand(5, 9);
+    $v2 = rand(5, 9);
+    $_SESSION['verif'] = $v1 * $v2;
+
+    $template_vars = array(
+        'lang' => $lang,
+        'error' => $error,
+        'user' => $user,
+        'v1' => $v1,
+        'v2' => $v2,
+    );
+    echo $twig->render('resetpassword.html.twig', $template_vars);
+}
+
 function fillindevice()
 {
     global $lang,$error,$devid,$devtype,$acreg,$accn,$actype,$notrack,$noident,$twig;
@@ -232,6 +250,13 @@ case 'u':        // fill in create user
 {
     fromhome();
     fillinuser();
+    break;
+}
+
+case 'r':        // fill in create user
+{
+    fromhome();
+    resetpass();
     break;
 }
 
@@ -397,7 +422,7 @@ case 'createuser':        // create user
 
         if ($ins->execute()) {   // insert ok, sent email
             $validation_link = $url.'?v='.$valid;
-            $msg = $twig->render('email-validation-request.html.twig', array('lang' => $lang, 'validation_link' => $validation_link));
+            $msg = $twig->render('email-validation-request.html.twig', array('email_subject' => $lang['email_subject'],'email_content' => $lang['email_content'], 'validation_link' => $validation_link));
             if (send_email($user, $lang['email_subject'], $msg, $sender)) {
                 // email sent
                 echo $twig->render('emailsent.html.twig', array('lang' => $lang));
@@ -408,6 +433,91 @@ case 'createuser':        // create user
         } else {
             $error = $lang['error_insert_tmpusers'];
             fillinuser();
+        }
+        $ins->closeCursor();
+    }
+
+    Database::disconnect();
+    break;
+}
+
+case 'resetpass':        // reset pass
+{
+    fromhome();
+    if (isset($_POST['user'])) {
+        $user = $_POST['user'];
+    }
+    if (isset($_POST['pw1'])) {
+        $pw1 = $_POST['pw1'];
+    } else {
+        $pw1 = '';
+    }
+    if (isset($_POST['pw2'])) {
+        $pw2 = $_POST['pw2'];
+    } else {
+        $pw2 = '';
+    }
+    if (isset($_POST['verif'])) {
+        $verif = $_POST['verif'];
+    } else {
+        $verif = '';
+    }
+
+    if ($verif == '' or $verif * 1 != $_SESSION['verif'] * 1) {
+        $error = $lang['error_verif'];
+    }
+
+    if (strlen($pw1) < 4) {
+        $error = $lang['error_pwtooshort'];
+    }
+
+    if ($pw1 != $pw2) {
+        $error = $lang['error_pwdontmatch'];
+    }
+    if (filter_var($user, FILTER_VALIDATE_EMAIL) === false) {
+        $error = $lang['error_emailformat'];
+    }
+
+    $dbh = Database::connect();
+    $req = $dbh->prepare('select usr_adress from users where usr_adress=:us');
+    $req->bindParam(':us', $user);
+    $req->execute();
+
+    if ($req->rowCount() == 0) {
+        $error = $lang['error_userdoesntexists'];
+    }
+    $req->closeCursor();
+
+    if ($error != '') {
+        resetpass();
+    } else {
+        $pass = crypt($pw1, 'GliderNetdotOrg');
+        $valid = md5(date('dYmsHi').$user);
+        $ttime = time();
+        
+        $rmv = $dbh->prepare('DELETE FROM tmpusers where tusr_adress=:us');
+        $rmv->bindParam(':us', $user);
+        $rmv->execute();
+
+    	$ins = $dbh->prepare('INSERT INTO tmpusers (tusr_adress, tusr_pw, tusr_validation, tusr_time) VALUES (:us, :pw, :va, :ti)');
+        $ins->bindParam(':us', $user);
+        $ins->bindParam(':pw', $pass);
+        $ins->bindParam(':va', $valid);
+        $ins->bindParam(':ti', $ttime);
+
+        if ($ins->execute()) {   // insert ok, sent email
+            $validation_link = $url.'?v='.$valid;
+            $msg = $twig->render('email-validation-request.html.twig', array('email_subject' => $lang['email_lost_pass_subject'],'email_lost_pass_content' => $lang['email_content'], 'validation_link' => $validation_link));
+            if (send_email($user, $lang['email_lost_pass_subject'], $msg, $sender)) {
+                // email sent
+                echo $twig->render('emailsent.html.twig', array('lang' => $lang));
+            } else {
+                $error = $lang['email_not_sent'];
+                resetpass();
+            }
+        } else {
+            $error = $lang['error_insert_tmpusers'];
+            resetpass();
         }
         $ins->closeCursor();
     }
@@ -467,9 +577,16 @@ case 'validuser':        // user validation from email
     if ($req->rowCount() == 1) {        // tmpuser user found
         $result = $req->fetch();
         $req->closeCursor();
-        $ins = $dbh->prepare('INSERT INTO users (usr_adress, usr_pw) VALUES (:us, :pw)');
-        $ins->bindParam(':us', $result['tusr_adress']);
-        $ins->bindParam(':pw', $result['tusr_pw']);
+	$chk = $dbh->prepare('select * from tmpusers where tusr_validation=:vl');
+	$chk->bindParam(':vl', $validcode);
+	$chk->execute();
+	if ($chk->rowCount() == 1) {        // tmpuser user found
+    	    $ins = $dbh->prepare('UPDATE users set usr_pw = :pw WHERE usr_adress = :us');
+        } else {
+    	    $ins = $dbh->prepare('INSERT INTO users (usr_adress, usr_pw) VALUES (:us, :pw)');
+    	}
+    	$ins->bindParam(':us', $result['tusr_adress']);
+    	$ins->bindParam(':pw', $result['tusr_pw']);
 
         if ($ins->execute()) {    // insert ok, delete tmpuser
             $ins->closeCursor();
